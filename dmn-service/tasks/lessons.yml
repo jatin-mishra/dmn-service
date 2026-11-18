@@ -1,3 +1,0 @@
-lessons:
-  - pattern: Over-generalising a request into a registry (multiple items + ids + list endpoint) when the user asked for one thing
-    rule: Build exactly the cardinality asked for. One schema -> one endpoint, no ids. Add generality only when requested.
