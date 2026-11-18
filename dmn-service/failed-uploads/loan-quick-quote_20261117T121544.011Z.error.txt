@@ -1,2 +1,0 @@
-DMN compile failed:
-- DMN: Error compiling FEEL expression '' for name 'Interest Amount' on node 'Interest Amount': syntax error near '<EOF>' (DMN id: _68D7A097-4841-4748-A43B-E5F7F09701B9, Error compiling the referenced FEEL expression) 
