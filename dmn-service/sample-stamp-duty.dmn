@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmn:definitions xmlns:dmn="http://www.omg.org/spec/DMN/20180521/MODEL/"
+                 xmlns="https://kiegroup.org/dmn/_stamp_duty_calculation"
+                 xmlns:feel="http://www.omg.org/spec/DMN/20180521/FEEL/"
+                 xmlns:kie="http://www.drools.org/kie/dmn/1.2"
+                 xmlns:dmndi="http://www.omg.org/spec/DMN/20180521/DMNDI/"
+                 xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+                 xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
+                 id="_SD_DEFS"
+                 name="stamp-duty-calculation"
+                 typeLanguage="http://www.omg.org/spec/DMN/20180521/FEEL/"
+                 namespace="https://kiegroup.org/dmn/_stamp_duty_calculation">
+  <dmn:extensionElements/>
+
+  <!-- Policy parameters returned per case: final = min(pct * (loan + base), cap) -->
+  <dmn:itemDefinition id="_tParams" name="tParams" isCollection="false">
+    <dmn:itemComponent id="_tParams_pct" name="pct" isCollection="false">
+      <dmn:typeRef>number</dmn:typeRef>
+    </dmn:itemComponent>
+    <dmn:itemComponent id="_tParams_base" name="base" isCollection="false">
+      <dmn:typeRef>number</dmn:typeRef>
+    </dmn:itemComponent>
+    <dmn:itemComponent id="_tParams_cap" name="cap" isCollection="false">
+      <dmn:typeRef>number</dmn:typeRef>
+    </dmn:itemComponent>
+    <dmn:itemComponent id="_tParams_category" name="category" isCollection="false">
+      <dmn:typeRef>string</dmn:typeRef>
+    </dmn:itemComponent>
+  </dmn:itemDefinition>
+
+  <!-- Inputs -->
+  <dmn:inputData id="_IN_LOAN" name="Loan Amount">
+    <dmn:extensionElements/>
+    <dmn:variable id="_IN_LOAN_VAR" name="Loan Amount" typeRef="number"/>
+  </dmn:inputData>
+  <dmn:inputData id="_IN_GP" name="Is Gram Panchayat">
+    <dmn:extensionElements/>
+    <dmn:variable id="_IN_GP_VAR" name="Is Gram Panchayat" typeRef="boolean"/>
+  </dmn:inputData>
+  <dmn:inputData id="_IN_MSME" name="Is MSME">
+    <dmn:extensionElements/>
+    <dmn:variable id="_IN_MSME_VAR" name="Is MSME" typeRef="boolean"/>
+  </dmn:inputData>
+
+  <!-- Step 1: pick the policy parameters for the case (no arithmetic here) -->
+  <dmn:decision id="_DEC_PARAMS" name="Rule Params">
+    <dmn:extensionElements/>
+    <dmn:variable id="_DEC_PARAMS_VAR" name="Rule Params" typeRef="tParams"/>
+    <dmn:informationRequirement id="_IR_P_GP">
+      <dmn:requiredInput href="#_IN_GP"/>
+    </dmn:informationRequirement>
+    <dmn:informationRequirement id="_IR_P_MSME">
+      <dmn:requiredInput href="#_IN_MSME"/>
+    </dmn:informationRequirement>
+    <dmn:informationRequirement id="_IR_P_LOAN">
+      <dmn:requiredInput href="#_IN_LOAN"/>
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="_DT_PARAMS" hitPolicy="FIRST" preferredOrientation="Rule-as-Row">
+      <dmn:input id="_DT_IN_GP" label="Is Gram Panchayat">
+        <dmn:inputExpression id="_DT_IN_GP_EXPR" typeRef="boolean">
+          <dmn:text>Is Gram Panchayat</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:input id="_DT_IN_MSME" label="Is MSME">
+        <dmn:inputExpression id="_DT_IN_MSME_EXPR" typeRef="boolean">
+          <dmn:text>Is MSME</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:input id="_DT_IN_LOAN" label="Loan Amount">
+        <dmn:inputExpression id="_DT_IN_LOAN_EXPR" typeRef="number">
+          <dmn:text>Loan Amount</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="_DT_OUT_PCT" name="pct" typeRef="number"/>
+      <dmn:output id="_DT_OUT_BASE" name="base" typeRef="number"/>
+      <dmn:output id="_DT_OUT_CAP" name="cap" typeRef="number"/>
+      <dmn:output id="_DT_OUT_CAT" name="category" typeRef="string"/>
+      <dmn:annotation name="Notes"/>
+
+      <dmn:rule id="_R1">
+        <dmn:inputEntry id="_R1_I1"><dmn:text>true</dmn:text></dmn:inputEntry>
+        <dmn:inputEntry id="_R1_I2"><dmn:text>-</dmn:text></dmn:inputEntry>
+        <dmn:inputEntry id="_R1_I3"><dmn:text>-</dmn:text></dmn:inputEntry>
+        <dmn:outputEntry id="_R1_O1"><dmn:text>0.2</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R1_O2"><dmn:text>20000000</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R1_O3"><dmn:text>5000000</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R1_O4"><dmn:text>"GP: 20% of (loan + 2 Cr), max 50 L"</dmn:text></dmn:outputEntry>
+        <dmn:annotationEntry><dmn:text>Gram panchayat rule</dmn:text></dmn:annotationEntry>
+      </dmn:rule>
+      <dmn:rule id="_R2">
+        <dmn:inputEntry id="_R2_I1"><dmn:text>false</dmn:text></dmn:inputEntry>
+        <dmn:inputEntry id="_R2_I2"><dmn:text>true</dmn:text></dmn:inputEntry>
+        <dmn:inputEntry id="_R2_I3"><dmn:text>&lt; 1000000</dmn:text></dmn:inputEntry>
+        <dmn:outputEntry id="_R2_O1"><dmn:text>0</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R2_O2"><dmn:text>0</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R2_O3"><dmn:text>0</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R2_O4"><dmn:text>"MSME: exempt below 10 L"</dmn:text></dmn:outputEntry>
+        <dmn:annotationEntry><dmn:text>EXAMPLE values - replace</dmn:text></dmn:annotationEntry>
+      </dmn:rule>
+      <dmn:rule id="_R3">
+        <dmn:inputEntry id="_R3_I1"><dmn:text>false</dmn:text></dmn:inputEntry>
+        <dmn:inputEntry id="_R3_I2"><dmn:text>true</dmn:text></dmn:inputEntry>
+        <dmn:inputEntry id="_R3_I3"><dmn:text>&gt; 2500000</dmn:text></dmn:inputEntry>
+        <dmn:outputEntry id="_R3_O1"><dmn:text>1</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R3_O2"><dmn:text>0</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R3_O3"><dmn:text>2500000</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R3_O4"><dmn:text>"MSME: capped at 25 L"</dmn:text></dmn:outputEntry>
+        <dmn:annotationEntry><dmn:text>EXAMPLE values - replace</dmn:text></dmn:annotationEntry>
+      </dmn:rule>
+      <dmn:rule id="_R4">
+        <dmn:inputEntry id="_R4_I1"><dmn:text>false</dmn:text></dmn:inputEntry>
+        <dmn:inputEntry id="_R4_I2"><dmn:text>false</dmn:text></dmn:inputEntry>
+        <dmn:inputEntry id="_R4_I3"><dmn:text>&gt; 10000000</dmn:text></dmn:inputEntry>
+        <dmn:outputEntry id="_R4_O1"><dmn:text>1</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R4_O2"><dmn:text>0</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R4_O3"><dmn:text>10000000</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R4_O4"><dmn:text>"General: capped at 1 Cr"</dmn:text></dmn:outputEntry>
+        <dmn:annotationEntry><dmn:text>EXAMPLE values - replace</dmn:text></dmn:annotationEntry>
+      </dmn:rule>
+      <dmn:rule id="_R5">
+        <dmn:inputEntry id="_R5_I1"><dmn:text>-</dmn:text></dmn:inputEntry>
+        <dmn:inputEntry id="_R5_I2"><dmn:text>-</dmn:text></dmn:inputEntry>
+        <dmn:inputEntry id="_R5_I3"><dmn:text>-</dmn:text></dmn:inputEntry>
+        <dmn:outputEntry id="_R5_O1"><dmn:text>1</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R5_O2"><dmn:text>0</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R5_O3"><dmn:text>Loan Amount</dmn:text></dmn:outputEntry>
+        <dmn:outputEntry id="_R5_O4"><dmn:text>"No adjustment"</dmn:text></dmn:outputEntry>
+        <dmn:annotationEntry><dmn:text>Default: amount unchanged</dmn:text></dmn:annotationEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+
+  <!-- Step 2: the one formula, written once -->
+  <dmn:decision id="_DEC_FINAL" name="Final Amount">
+    <dmn:extensionElements/>
+    <dmn:variable id="_DEC_FINAL_VAR" name="Final Amount" typeRef="number"/>
+    <dmn:informationRequirement id="_IR_F_PARAMS">
+      <dmn:requiredDecision href="#_DEC_PARAMS"/>
+    </dmn:informationRequirement>
+    <dmn:informationRequirement id="_IR_F_LOAN">
+      <dmn:requiredInput href="#_IN_LOAN"/>
+    </dmn:informationRequirement>
+    <dmn:literalExpression id="_LE_FINAL">
+      <dmn:text>min(Rule Params.pct * (Loan Amount + Rule Params.base), Rule Params.cap)</dmn:text>
+    </dmn:literalExpression>
+  </dmn:decision>
+
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_DIAGRAM">
+      <di:extension>
+        <kie:ComponentsWidthsExtension>
+          <kie:ComponentWidths dmnElementRef="_DT_PARAMS">
+            <kie:width>50</kie:width>
+            <kie:width>150</kie:width>
+            <kie:width>120</kie:width>
+            <kie:width>150</kie:width>
+            <kie:width>100</kie:width>
+            <kie:width>120</kie:width>
+            <kie:width>120</kie:width>
+            <kie:width>300</kie:width>
+            <kie:width>200</kie:width>
+          </kie:ComponentWidths>
+          <kie:ComponentWidths dmnElementRef="_LE_FINAL">
+            <kie:width>600</kie:width>
+          </kie:ComponentWidths>
+        </kie:ComponentsWidthsExtension>
+      </di:extension>
+
+      <dmndi:DMNShape id="dmnshape-_IN_LOAN" dmnElementRef="_IN_LOAN" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="100" y="380" width="150" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="dmnshape-_IN_GP" dmnElementRef="_IN_GP" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="320" y="380" width="150" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="dmnshape-_IN_MSME" dmnElementRef="_IN_MSME" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="540" y="380" width="150" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="dmnshape-_DEC_PARAMS" dmnElementRef="_DEC_PARAMS" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="430" y="220" width="150" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="dmnshape-_DEC_FINAL" dmnElementRef="_DEC_FINAL" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="210" y="60" width="150" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+
+      <dmndi:DMNEdge id="dmnedge-_IR_P_GP" dmnElementRef="_IR_P_GP">
+        <di:waypoint x="395" y="405"/>
+        <di:waypoint x="505" y="245"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="dmnedge-_IR_P_MSME" dmnElementRef="_IR_P_MSME">
+        <di:waypoint x="615" y="405"/>
+        <di:waypoint x="505" y="245"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="dmnedge-_IR_P_LOAN" dmnElementRef="_IR_P_LOAN">
+        <di:waypoint x="175" y="405"/>
+        <di:waypoint x="505" y="245"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="dmnedge-_IR_F_PARAMS" dmnElementRef="_IR_F_PARAMS">
+        <di:waypoint x="505" y="245"/>
+        <di:waypoint x="285" y="85"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="dmnedge-_IR_F_LOAN" dmnElementRef="_IR_F_LOAN">
+        <di:waypoint x="175" y="405"/>
+        <di:waypoint x="285" y="85"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</dmn:definitions>

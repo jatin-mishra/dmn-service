@@ -1,0 +1,68 @@
+:root {
+  --fg: #1f2328;
+  --muted: #59636e;
+  --border: #d0d7de;
+  --bg: #f6f8fa;
+  --primary: #0b5cad;
+  --error: #b42318;
+  --success: #1a7f37;
+  --warn: #9a6700;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  color: var(--fg);
+}
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; background: #fff; }
+h1 { font-size: 18px; margin: 0; }
+h2 { font-size: 15px; margin: 0 0 12px; }
+h3 { font-size: 13px; margin: 16px 0 6px; }
+pre { background: var(--bg); padding: 10px; border-radius: 6px; overflow: auto; font-size: 12px; }
+
+button { font: inherit; padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; background: #fff; cursor: pointer; }
+button:hover:not(:disabled) { background: var(--bg); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+button.primary:hover:not(:disabled) { background: #094d91; }
+input, select { font: inherit; padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; min-width: 0; }
+
+.app-header { display: flex; gap: 16px; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--border); }
+.page { max-width: 900px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.card { border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.card label { display: flex; flex-direction: column; gap: 6px; }
+.actions { display: flex; gap: 8px; margin-top: 12px; }
+.home-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.home-actions button { padding: 12px 20px; font-size: 15px; }
+
+.status { margin: 0; color: var(--muted); }
+.status.error { color: var(--error); }
+.status.success { color: var(--success); }
+.status ul { margin: 6px 0 0; }
+
+.rule-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.rule-list button { width: 100%; text-align: left; }
+.rule-list button.selected { border-color: var(--primary); background: #eaf2fb; }
+
+/* Editor page: the DMN editor takes all remaining height. */
+.editor-page { height: 100%; display: flex; flex-direction: column; }
+.editor-bar { display: flex; align-items: center; gap: 16px; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.rule-meta { flex: 1; display: flex; gap: 16px; align-items: baseline; color: var(--muted); }
+.rule-meta strong { color: var(--fg); font-size: 15px; }
+.unsaved { color: var(--warn); font-weight: 600; }
+.editor-page > .status { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.dmn-editor { flex: 1; min-height: 0; }
+
+/* Execution form */
+.execution-form { display: flex; flex-direction: column; gap: 10px; }
+.execution-form fieldset { border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.execution-form legend { padding: 0 4px; }
+.field { display: grid !important; grid-template-columns: 180px 1fr; align-items: center; gap: 10px; }
+.field-name { font-family: ui-monospace, monospace; font-size: 13px; }
+.required { color: var(--error); margin-left: 2px; }
+.hint { color: var(--muted); font-size: 12px; }
+.list-item { display: flex; gap: 8px; align-items: flex-start; }
+.list-item > input, .list-item > select { flex: 1; }
+.list-item.object { border-left: 3px solid var(--border); padding-left: 10px; }
+.list-item-body { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.list-item-title { color: var(--muted); font-size: 12px; }
+button.remove { color: var(--error); }
+.page > button, .execution-form fieldset > button { align-self: flex-start; }

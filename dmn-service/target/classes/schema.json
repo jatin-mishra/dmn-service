@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "loan-application",
+  "title": "LoanApplication",
+  "description": "Rule input. Covers string, enum, date, integer, double, boolean, string[], object, object[] and object[] inside object[] (2 levels).",
+  "type": "object",
+  "required": ["applicationId", "loanType", "loanAmount", "applicant"],
+  "properties": {
+    "applicationId": { "type": "string", "description": "Unique application reference" },
+    "loanType": { "type": "string", "enum": ["HOME", "BUSINESS", "AGRICULTURE"] },
+    "applicationDate": { "type": "string", "format": "date" },
+    "loanAmount": { "type": "number", "format": "double", "minimum": 0 },
+    "interestRate": { "type": "number", "format": "double", "minimum": 0, "maximum": 100 },
+    "tenureMonths": { "type": "integer", "minimum": 1 },
+    "isMsme": { "type": "boolean" },
+    "isGramPanchayat": { "type": "boolean" },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "applicant": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "panNumber": { "type": "string" },
+        "age": { "type": "integer", "minimum": 0 },
+        "annualIncome": { "type": "number", "format": "double" },
+        "isResident": { "type": "boolean" },
+        "phoneNumbers": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "address": {
+          "type": "object",
+          "properties": {
+            "line1": { "type": "string" },
+            "city": { "type": "string" },
+            "state": { "type": "string" },
+            "pincode": { "type": "string" }
+          }
+        }
+      }
+    },
+    "properties": {
+      "type": "array",
+      "description": "Level 1: list of objects",
+      "items": {
+        "type": "object",
+        "required": ["propertyId", "marketValue"],
+        "properties": {
+          "propertyId": { "type": "string" },
+          "marketValue": { "type": "number", "format": "double" },
+          "areaSqFt": { "type": "integer" },
+          "isAgricultural": { "type": "boolean" },
+          "documentIds": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "district": { "type": "string" },
+              "state": { "type": "string" }
+            }
+          },
+          "owners": {
+            "type": "array",
+            "description": "Level 2: list of objects inside a list of objects",
+            "items": {
+              "type": "object",
+              "required": ["name", "sharePercent"],
+              "properties": {
+                "name": { "type": "string" },
+                "sharePercent": { "type": "number", "format": "double", "minimum": 0, "maximum": 100 },
+                "isResident": { "type": "boolean" },
+                "aliases": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,78 @@
+task: Add read APIs (rule XML by id, list rule ids) and a static JSON-schema API for the KIE DMN editor
+status: done
+
+design:
+  endpoints:
+    - method: GET
+      path: /rules
+      returns: '{"ruleIds": ["a", "b"]}  (sorted)'
+      how: DmnRuleStore.listRuleIds() -> DynamoDB Scan, projection ruleId only, paginated
+    - method: GET
+      path: /rules/{ruleId}
+      returns: raw DMN XML (Content-Type application/xml) + header X-Rule-Version
+      how: DmnRuleStore.load(); 404 via existing RuleNotFoundException handler
+    - method: GET
+      path: /schema
+      returns: the single hardcoded JSON Schema document (application/json)
+      how: loaded once at startup from classpath:schema.json
+  change_after_review: single schema only, no ids / list endpoint (user feedback)
+  schema_file: src/main/resources/schema.json (JSON Schema draft-07)
+  schema_shape: |
+    loan-application
+    ├─ applicationId        string
+    ├─ loanType             string (enum HOME | BUSINESS | AGRICULTURE)
+    ├─ applicationDate      string (format date)
+    ├─ loanAmount           number (format double)
+    ├─ interestRate         number (format double)
+    ├─ tenureMonths         integer
+    ├─ isMsme               boolean
+    ├─ isGramPanchayat      boolean
+    ├─ tags                 string[]
+    ├─ applicant            object
+    │   ├─ name, panNumber  string
+    │   ├─ age              integer
+    │   ├─ annualIncome     number (double)
+    │   ├─ isResident       boolean
+    │   ├─ phoneNumbers     string[]
+    │   └─ address          object {line1, city, state, pincode: string}
+    └─ properties           object[]                      <- level 1 array
+        ├─ propertyId       string
+        ├─ marketValue      number (double)
+        ├─ areaSqFt         integer
+        ├─ isAgricultural   boolean
+        ├─ documentIds      string[]
+        ├─ location         object {district, state: string}
+        └─ owners           object[]                      <- level 2 array (inside array)
+            ├─ name         string
+            ├─ sharePercent number (double)
+            ├─ isResident   boolean
+            └─ aliases      string[]
+
+steps:
+  - [x] DmnRuleStore.listRuleIds()
+  - [x] DmnRuleController: GET /rules, GET /rules/{ruleId}
+  - [x] SchemaController with GET /schema
+  - [x] schema.json
+  - [x] README: document the 3 new endpoints
+  - [x] Verify: mvn compile; run against LocalStack and curl every endpoint (incl. 404s)
+
+backward_compatibility: existing PUT/POST endpoints and DynamoDB table unchanged; additive only
+
+review:
+  verified_live: LocalStack DynamoDB + app on :9090 (test rule removed afterwards)
+  results:
+    - GET /schema -> 200 application/json, all field kinds present, properties[].owners[] nested
+    - GET /rules -> {"ruleIds":[...]} sorted, new rule appears after PUT
+    - GET /rules/{id} -> 200 application/xml, X-Rule-Version header, byte-identical to uploaded file
+    - GET /rules/{unknown} -> 404 JSON, also with Accept application/xml (was 500 before error handlers set content type)
+    - existing PUT / evaluate unchanged
+  follow_up_fixes:
+    - PUT with non-DMN XML returned 500 (KIE unmarshaller returns null -> NPE in DMNRuntimeBuilder).
+      DmnEngine.compile now unmarshals first and throws DmnCompileException -> 400; verified <x/>, plain text, truncated XML -> 400, nothing stored
+    - README used missing stamp-duty-ui.dmn and nested "Rule Attribute" inputs, and port 8080.
+      Now uses sample-stamp-duty.dmn, its flat inputs and port 9090; all 5 table rows verified (GP 3M=4600000, GP 8M=5000000, MSME 0.5M=0, MSME 4M=2500000, General 15M=10000000)
+    - Publishing from browser failed: no CORS config -> preflight for PUT returned 403 "Invalid CORS request".
+      Added CORS (dmn.cors.allowed-origins, default http://localhost:*, exposes X-Rule-Version); preflight now 200, foreign origin still 403
+    - PUT accepted only xml/text content types (415 for application/json, octet-stream); now accepts any, compile check validates
+    - Failed uploads saved by FailedUploadDumper to dmn.failed-upload-dir as <ruleId>_<ts>.xml (byte-identical) + .error.txt;
+      verified for non-DMN XML, JSON body and a DMN with an unresolved typeRef; Postman collection 52/52 still passing

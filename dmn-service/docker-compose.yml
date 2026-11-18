@@ -1,0 +1,11 @@
+services:
+  localstack:
+    image: localstack/localstack:3.8
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=dynamodb
+      - AWS_DEFAULT_REGION=ap-south-1
+    volumes:
+      # Runs automatically once LocalStack is ready: creates the DmnRules table
+      - ./localstack/init-dynamodb.sh:/etc/localstack/init/ready.d/init-dynamodb.sh
